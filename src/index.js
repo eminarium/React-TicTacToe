@@ -32,8 +32,8 @@ class Board extends React.Component {
             let rows = [];
 
             for (let j = 0; j < 3; j++) {
-                counter += 1;
                 rows.push(this.renderSquare(counter));
+                counter += 1;
             }
 
             gameboard.push(<div className="board-row" key={i}>{rows}</div>);
@@ -63,8 +63,18 @@ class Game extends React.Component {
     jumpTo(step) {
         this.setState({
             stepNumber: step,
-            xIsNext: (step % 2) === 0,
+            xIsNext: ((step % 2) === 0),
         })
+    }
+
+    reverseOrder() {
+        const firstHistoryItemAsArray = Array(this.state.history[0]);
+        const otherHistoryItems = this.state.history.slice(1, this.state.stepNumber+1);
+        const reversedHistoryItems = otherHistoryItems.reverse();
+
+        this.setState({
+            history: firstHistoryItemAsArray.concat(reversedHistoryItems),
+        });
     }
 
     handleClick(i) {
@@ -83,6 +93,7 @@ class Game extends React.Component {
                 squares: squares,
                 row: row,
                 col: col,
+                stepNo: history.length,
             }]),
             stepNumber: history.length,
             xIsNext: !this.state.xIsNext,
@@ -98,10 +109,11 @@ class Game extends React.Component {
 
         const moves = history.map((step, move) => {
             const desc = move ? 
-                         "Go to move #" + move + ", coordinates : [" + step.row + ", " + step.col + "]" : 
+                         "Go to move #" + (step.stepNo) + ", coordinates : [" + step.row + ", " + step.col + "]" : 
                          "Go to game start !";
 
             const output = (this.state.stepNumber === move) ? (<b>{desc}</b>) : (desc);
+
             return (
                 <li key={move}>
                     <button onClick={() => this.jumpTo(move)} >
@@ -125,13 +137,14 @@ class Game extends React.Component {
         return (
             <div className="game">
                 <div className="game-board">
-                    <Board 
+                    <Board
                         squares={current.squares}
                         onClick={(i) => this.handleClick(i)}
                     />
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
+                    <button onClick={() => this.reverseOrder()}>Reverse Move Order !</button>
                     <ol>{moves}</ol>
                 </div>
             </div>
