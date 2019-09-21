@@ -5,7 +5,7 @@ import './index.css'
 function Square(props) {
     return (
         <button
-            className="square"
+            className={props.highLight ? ("square-winner") : ("square") }
             onClick={props.onClick}
         >
             {props.value}
@@ -16,10 +16,14 @@ function Square(props) {
 class Board extends React.Component {
 
     renderSquare(i) {
+        const winPositions = this.props.winPositions;
+        const highLight = (winPositions && (i === winPositions[2] || i === winPositions[1] || i === winPositions[0])) ? true : false;
+
         return <Square
                     key={i}
                     value={this.props.squares[i]} 
                     onClick={() => this.props.onClick(i)}
+                    highLight={highLight}
                 />;
     }
 
@@ -83,7 +87,7 @@ class Game extends React.Component {
         const squares = current.squares.slice();
         const [row, col] = getRowAndColumn(i);
 
-        if (CalculateWinner(squares) || squares[i]) {
+        if (CalculateWinner(squares)[0] || squares[i]) {
             return;
         }
 
@@ -104,7 +108,7 @@ class Game extends React.Component {
 
         const history = this.state.history;
         const current = history[this.state.stepNumber];
-        const winner = CalculateWinner(current.squares);
+        const [winner, winPositions] = CalculateWinner(current.squares);
         const isDraw = checkIfDraw(current.squares);
 
         const moves = history.map((step, move) => {
@@ -140,6 +144,7 @@ class Game extends React.Component {
                     <Board
                         squares={current.squares}
                         onClick={(i) => this.handleClick(i)}
+                        winPositions = {winner ? winPositions : null}
                     />
                 </div>
                 <div className="game-info">
@@ -175,11 +180,11 @@ function CalculateWinner(squares) {
         const [a, b, c] = lines[i];
 
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-            return squares[a];
+            return [squares[a], lines[i]];
         }
     }
 
-    return null;
+    return [null, null];
 }
 
 function checkIfDraw(squares) {
